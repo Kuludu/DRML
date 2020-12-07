@@ -1,20 +1,26 @@
 import sys
 
+from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtGui import QStandardItemModel, QStandardItem
 from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog, QHeaderView
 from UI.mainwindow import *
+from UI.visualize import *
 
 import pandas as pd
 from sklearn.cluster import DBSCAN, KMeans
 from sklearn.metrics import f1_score, mean_squared_error, mean_absolute_error, accuracy_score
+from sklearn.manifold import MDS, Isomap, LocallyLinearEmbedding
+from sklearn.decomposition import PCA
 
 
 class MainWindow(QMainWindow, Ui_MainWindow):
+
     def __init__(self, parent=None):
         super(MainWindow, self).__init__(parent)
         self.setupUi(self)
         self.browse_file.clicked.connect(self.__browse_file)
         self.submit.clicked.connect(self.__execute)
+        self.VisDialog = VisualizeWindow()
 
         self.model = QStandardItemModel(10, 6)
         self.model.setHorizontalHeaderLabels(["聚类算法", "降维方法", "Accuracy", "F1", "MSE", "MAE"])
@@ -35,18 +41,119 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         dbscan.fit(X)
         kmeans.fit(X)
 
-        self.model.setItem(0, 0, QStandardItem("DBSCAN(" + str(self.eps.value()) + "," + str(self.minpts.value()) + ")"))
+        self.model.setItem(0, 0,
+                           QStandardItem("DBSCAN(" + str(self.eps.value()) + "," + str(self.minpts.value()) + ")"))
         self.model.setItem(0, 1, QStandardItem("None"))
         self.model.setItem(0, 2, QStandardItem("%.3f" % accuracy_score(y, dbscan.labels_)))
         self.model.setItem(0, 3, QStandardItem("%.3f" % f1_score(y, dbscan.labels_, average="micro")))
         self.model.setItem(0, 4, QStandardItem("%.3f" % mean_squared_error(y, dbscan.labels_)))
         self.model.setItem(0, 5, QStandardItem("%.3f" % mean_absolute_error(y, dbscan.labels_)))
 
+        self.model.setItem(1, 0, QStandardItem("Kmeans(" + str(self.cluster.value()) + ")"))
+        self.model.setItem(1, 1, QStandardItem("None"))
+        self.model.setItem(1, 2, QStandardItem("%.3f" % accuracy_score(y, kmeans.labels_)))
+        self.model.setItem(1, 3, QStandardItem("%.3f" % f1_score(y, kmeans.labels_, average="micro")))
+        self.model.setItem(1, 4, QStandardItem("%.3f" % mean_squared_error(y, kmeans.labels_)))
+        self.model.setItem(1, 5, QStandardItem("%.3f" % mean_absolute_error(y, kmeans.labels_)))
+
+        pca = PCA(n_components=self.dimension.value())
+        pca_X = pca.fit_transform(X)
+
+        dbscan.fit(pca_X)
+        self.model.setItem(2, 0,
+                           QStandardItem("DBSCAN(" + str(self.eps.value()) + "," + str(self.minpts.value()) + ")"))
+        self.model.setItem(2, 1, QStandardItem("PCA"))
+        self.model.setItem(2, 2, QStandardItem("%.3f" % accuracy_score(y, dbscan.labels_)))
+        self.model.setItem(2, 3, QStandardItem("%.3f" % f1_score(y, dbscan.labels_, average="micro")))
+        self.model.setItem(2, 4, QStandardItem("%.3f" % mean_squared_error(y, dbscan.labels_)))
+        self.model.setItem(2, 5, QStandardItem("%.3f" % mean_absolute_error(y, dbscan.labels_)))
+
+        kmeans.fit(pca_X)
+        self.model.setItem(3, 0, QStandardItem("Kmeans(" + str(self.cluster.value()) + ")"))
+        self.model.setItem(3, 1, QStandardItem("PCA"))
+        self.model.setItem(3, 2, QStandardItem("%.3f" % accuracy_score(y, kmeans.labels_)))
+        self.model.setItem(3, 3, QStandardItem("%.3f" % f1_score(y, kmeans.labels_, average="micro")))
+        self.model.setItem(3, 4, QStandardItem("%.3f" % mean_squared_error(y, kmeans.labels_)))
+        self.model.setItem(3, 5, QStandardItem("%.3f" % mean_absolute_error(y, kmeans.labels_)))
+
+        mds = MDS(n_components=self.dimension.value())
+        mds_X = mds.fit_transform(X)
+
+        dbscan.fit(mds_X)
+        self.model.setItem(4, 0,
+                           QStandardItem("DBSCAN(" + str(self.eps.value()) + "," + str(self.minpts.value()) + ")"))
+        self.model.setItem(4, 1, QStandardItem("MDS"))
+        self.model.setItem(4, 2, QStandardItem("%.3f" % accuracy_score(y, dbscan.labels_)))
+        self.model.setItem(4, 3, QStandardItem("%.3f" % f1_score(y, dbscan.labels_, average="micro")))
+        self.model.setItem(4, 4, QStandardItem("%.3f" % mean_squared_error(y, dbscan.labels_)))
+        self.model.setItem(4, 5, QStandardItem("%.3f" % mean_absolute_error(y, dbscan.labels_)))
+
+        kmeans.fit(mds_X)
+        self.model.setItem(5, 0, QStandardItem("Kmeans(" + str(self.cluster.value()) + ")"))
+        self.model.setItem(5, 1, QStandardItem("MDS"))
+        self.model.setItem(5, 2, QStandardItem("%.3f" % accuracy_score(y, kmeans.labels_)))
+        self.model.setItem(5, 3, QStandardItem("%.3f" % f1_score(y, kmeans.labels_, average="micro")))
+        self.model.setItem(5, 4, QStandardItem("%.3f" % mean_squared_error(y, kmeans.labels_)))
+        self.model.setItem(5, 5, QStandardItem("%.3f" % mean_absolute_error(y, kmeans.labels_)))
+
+        isomap = Isomap(n_components=self.dimension.value())
+        isomap_X = isomap.fit_transform(X)
+
+        dbscan.fit(isomap_X)
+        self.model.setItem(6, 0,
+                           QStandardItem("DBSCAN(" + str(self.eps.value()) + "," + str(self.minpts.value()) + ")"))
+        self.model.setItem(6, 1, QStandardItem("Isomap"))
+        self.model.setItem(6, 2, QStandardItem("%.3f" % accuracy_score(y, dbscan.labels_)))
+        self.model.setItem(6, 3, QStandardItem("%.3f" % f1_score(y, dbscan.labels_, average="micro")))
+        self.model.setItem(6, 4, QStandardItem("%.3f" % mean_squared_error(y, dbscan.labels_)))
+        self.model.setItem(6, 5, QStandardItem("%.3f" % mean_absolute_error(y, dbscan.labels_)))
+
+        kmeans.fit(isomap_X)
+        self.model.setItem(7, 0, QStandardItem("Kmeans(" + str(self.cluster.value()) + ")"))
+        self.model.setItem(7, 1, QStandardItem("Isomap"))
+        self.model.setItem(7, 2, QStandardItem("%.3f" % accuracy_score(y, kmeans.labels_)))
+        self.model.setItem(7, 3, QStandardItem("%.3f" % f1_score(y, kmeans.labels_, average="micro")))
+        self.model.setItem(7, 4, QStandardItem("%.3f" % mean_squared_error(y, kmeans.labels_)))
+        self.model.setItem(7, 5, QStandardItem("%.3f" % mean_absolute_error(y, kmeans.labels_)))
+
+        lle = LocallyLinearEmbedding(n_components=self.dimension.value())
+        lle_X = lle.fit_transform(X)
+
+        dbscan.fit(lle_X)
+        self.model.setItem(8, 0,
+                           QStandardItem("DBSCAN(" + str(self.eps.value()) + "," + str(self.minpts.value()) + ")"))
+        self.model.setItem(8, 1, QStandardItem("LLE"))
+        self.model.setItem(8, 2, QStandardItem("%.3f" % accuracy_score(y, dbscan.labels_)))
+        self.model.setItem(8, 3, QStandardItem("%.3f" % f1_score(y, dbscan.labels_, average="micro")))
+        self.model.setItem(8, 4, QStandardItem("%.3f" % mean_squared_error(y, dbscan.labels_)))
+        self.model.setItem(8, 5, QStandardItem("%.3f" % mean_absolute_error(y, dbscan.labels_)))
+
+        kmeans.fit(lle_X)
+        self.model.setItem(9, 0, QStandardItem("Kmeans(" + str(self.cluster.value()) + ")"))
+        self.model.setItem(9, 1, QStandardItem("LLE"))
+        self.model.setItem(9, 2, QStandardItem("%.3f" % accuracy_score(y, kmeans.labels_)))
+        self.model.setItem(9, 3, QStandardItem("%.3f" % f1_score(y, kmeans.labels_, average="micro")))
+        self.model.setItem(9, 4, QStandardItem("%.3f" % mean_squared_error(y, kmeans.labels_)))
+        self.model.setItem(9, 5, QStandardItem("%.3f" % mean_absolute_error(y, kmeans.labels_)))
+
         self.result_list.setModel(self.model)
+
+
+class VisualizeWindow(QMainWindow, Ui_Visualize):
+
+    def __init__(self, parent=None):
+        super(QMainWindow, self).__init__(parent)
+        self.setupUi(self)
 
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
+
     main = MainWindow()
+    visualize = VisualizeWindow()
+
+    main.visualize_btn.clicked.connect(visualize.show)
+
     main.show()
+
     sys.exit(app.exec_())
