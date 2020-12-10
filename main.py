@@ -1,19 +1,26 @@
 import sys
 
+import matplotlib
+import pandas as pd
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtGui import QStandardItemModel, QStandardItem
 from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog, QHeaderView
+from sklearn.cluster import DBSCAN, KMeans
+from sklearn.decomposition import PCA
+from sklearn.manifold import MDS, Isomap, LocallyLinearEmbedding
+from sklearn.metrics import f1_score, mean_squared_error, mean_absolute_error, accuracy_score
+
 from UI.mainwindow import *
 from UI.visualize import *
 
-import pandas as pd
-from sklearn.cluster import DBSCAN, KMeans
-from sklearn.metrics import f1_score, mean_squared_error, mean_absolute_error, accuracy_score
-from sklearn.manifold import MDS, Isomap, LocallyLinearEmbedding
-from sklearn.decomposition import PCA
+matplotlib.use("Qt5Agg")
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+import matplotlib.pyplot as plt
 
 
 class MainWindow(QMainWindow, Ui_MainWindow):
+    Signal_dimension = pyqtSignal(int)
+    Signal_data = pyqtSignal(list)
 
     def __init__(self, parent=None):
         super(MainWindow, self).__init__(parent)
@@ -21,6 +28,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.browse_file.clicked.connect(self.__browse_file)
         self.submit.clicked.connect(self.__execute)
         self.VisDialog = VisualizeWindow()
+        self.Signal_dimension.connect(self.VisDialog.draw)
+        self.Signal_data.connect(self.VisDialog.set_data)
+        self.visualize_btn.clicked.connect(self.VisDialog.show)
 
         self.model = QStandardItemModel(10, 6)
         self.model.setHorizontalHeaderLabels(["聚类算法", "降维方法", "Accuracy", "F1", "MSE", "MAE"])
@@ -32,7 +42,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.file_path.setText(file_path)
 
     def __execute(self):
-        data = pd.read_csv(self.file_path.text(), header=None)
+        try:
+            data = pd.read_csv(self.file_path.text(), header=None)
+        except FileNotFoundError:
+            return
+
         X = data.values[:, :-1]
         y = data.values[:, -1]
 
@@ -138,12 +152,40 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.result_list.setModel(self.model)
 
+        self.Signal_data.emit([pca_X, mds_X, isomap_X, lle_X])
+        self.Signal_dimension.emit(self.dimension.value())
+
 
 class VisualizeWindow(QMainWindow, Ui_Visualize):
 
     def __init__(self, parent=None):
         super(QMainWindow, self).__init__(parent)
         self.setupUi(self)
+        self.data = None
+
+    def set_data(self, data):
+        self.data = data
+
+    def draw(self, dimension):
+        if dimension != 2 or self.data is None:
+            return
+
+        fig = plt.figure()
+        plt.subplots_adjust(wspace=0.4, hspace=0.4)
+        ax = fig.add_subplot(221)
+        ax.plot(self.data[0][0], self.data[0][1])
+        ax.set_title("PCA")
+        ax = fig.add_subplot(222)
+        ax.plot(self.data[1][0], self.data[1][1])
+        ax.set_title("MDS")
+        ax = fig.add_subplot(223)
+        ax.plot(self.data[2][0], self.data[2][1])
+        ax.set_title("Isomap")
+        ax = fig.add_subplot(224)
+        ax.plot(self.data[3][0], self.data[3][1])
+        ax.set_title("LLE")
+        canvas = FigureCanvas(fig)
+        self.setCentralWidget(canvas)
 
 
 if __name__ == "__main__":
@@ -151,8 +193,6 @@ if __name__ == "__main__":
 
     main = MainWindow()
     visualize = VisualizeWindow()
-
-    main.visualize_btn.clicked.connect(visualize.show)
 
     main.show()
 
