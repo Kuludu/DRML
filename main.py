@@ -152,7 +152,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.result_list.setModel(self.model)
 
-        self.Signal_data.emit([pca_X, mds_X, isomap_X, lle_X])
+        self.Signal_data.emit([pca_X, mds_X, isomap_X, lle_X, y])
         self.Signal_dimension.emit(self.dimension.value())
 
 
@@ -182,21 +182,22 @@ class VisualizeWindow(QMainWindow, Ui_Visualize):
         fig = plt.figure()
         plt.subplots_adjust(wspace=0.4, hspace=0.4)
 
-        ax = fig.add_subplot(221)
-        ax.scatter(self.data[0][:, 0], self.data[0][:, 1], s=0.8)
-        ax.set_title("PCA")
+        ax_pca = fig.add_subplot(221)
+        ax_pca.set_title("PCA")
 
-        ax = fig.add_subplot(222)
-        ax.scatter(self.data[1][:, 0], self.data[1][:, 1], s=0.8)
-        ax.set_title("MDS")
+        ax_mds = fig.add_subplot(222)
+        ax_mds.set_title("MDS")
 
-        ax = fig.add_subplot(223)
-        ax.scatter(self.data[2][:, 0], self.data[2][:, 1], s=0.8)
-        ax.set_title("Isomap")
+        ax_isomap = fig.add_subplot(223)
+        ax_isomap.set_title("Isomap")
 
-        ax = fig.add_subplot(224)
-        ax.scatter(self.data[3][:, 0], self.data[3][:, 1], s=0.8)
-        ax.set_title("LLE")
+        ax_lle = fig.add_subplot(224)
+        ax_lle.set_title("LLE")
+
+        ax_pca.scatter(self.data[0][:, 0], self.data[0][:, 1], s=0.8, c=self.data[4])
+        ax_mds.scatter(self.data[1][:, 0], self.data[1][:, 1], s=0.8, c=self.data[4])
+        ax_isomap.scatter(self.data[2][:, 0], self.data[2][:, 1], s=0.8, c=self.data[4])
+        ax_lle.scatter(self.data[3][:, 0], self.data[3][:, 1], s=0.8, c=self.data[4])
 
         canvas = FigureCanvas(fig)
         self.setCentralWidget(canvas)
@@ -205,21 +206,22 @@ class VisualizeWindow(QMainWindow, Ui_Visualize):
         fig = plt.figure()
         plt.subplots_adjust(wspace=0.4, hspace=0.4)
 
-        ax = fig.add_subplot(221, projection='3d')
-        ax.scatter(self.data[0][:, 0], self.data[0][:, :1], self.data[0][:, 2], s=0.8)
-        ax.set_title("PCA")
+        ax_pca = fig.add_subplot(221, projection='3d')
+        ax_pca.set_title("PCA")
 
-        ax = fig.add_subplot(222, projection='3d')
-        ax.scatter(self.data[1][:, 0], self.data[1][:, :1], self.data[1][:, 2], s=0.8)
-        ax.set_title("MDS")
+        ax_mds = fig.add_subplot(222, projection='3d')
+        ax_mds.set_title("MDS")
 
-        ax = fig.add_subplot(223, projection='3d')
-        ax.scatter(self.data[2][:, 0], self.data[2][:, :1], self.data[2][:, 2], s=0.8)
-        ax.set_title("Isomap")
+        ax_isomap = fig.add_subplot(223, projection='3d')
+        ax_isomap.set_title("Isomap")
 
-        ax = fig.add_subplot(224, projection='3d')
-        ax.scatter(self.data[3][:, 0], self.data[3][:, :1], self.data[3][:, 2], s=0.8)
-        ax.set_title("LLE")
+        ax_lle = fig.add_subplot(224, projection='3d')
+        ax_lle.set_title("LLE")
+
+        ax_pca.scatter(self.data[0][:, 0], self.data[0][:, 1], self.data[0][:, 2], s=0.8, c=self.data[4])
+        ax_mds.scatter(self.data[1][:, 0], self.data[1][:, 1], self.data[1][:, 2], s=0.8, c=self.data[4])
+        ax_isomap.scatter(self.data[2][:, 0], self.data[2][:, 1], self.data[2][:, 2], s=0.8, c=self.data[4])
+        ax_lle.scatter(self.data[3][:, 0], self.data[3][:, 1], self.data[3][:, 2], s=0.8, c=self.data[4])
 
         canvas = FigureCanvas(fig)
         self.setCentralWidget(canvas)
