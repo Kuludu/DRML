@@ -167,23 +167,60 @@ class VisualizeWindow(QMainWindow, Ui_Visualize):
         self.data = data
 
     def draw(self, dimension):
-        if dimension != 2 or self.data is None:
+        if self.data is None:
             return
+        if dimension == 2:
+            self.draw_2D()
+        elif dimension == 3:
+            self.draw_3D()
+        else:
+            fig = plt.figure()
+            canvas = FigureCanvas(fig)
+            self.setCentralWidget(canvas)
 
+    def draw_2D(self):
         fig = plt.figure()
         plt.subplots_adjust(wspace=0.4, hspace=0.4)
+
         ax = fig.add_subplot(221)
-        ax.plot(self.data[0][0], self.data[0][1])
+        ax.scatter(self.data[0][:, 0], self.data[0][:, 1], s=0.8)
         ax.set_title("PCA")
+
         ax = fig.add_subplot(222)
-        ax.plot(self.data[1][0], self.data[1][1])
+        ax.scatter(self.data[1][:, 0], self.data[1][:, 1], s=0.8)
         ax.set_title("MDS")
+
         ax = fig.add_subplot(223)
-        ax.plot(self.data[2][0], self.data[2][1])
+        ax.scatter(self.data[2][:, 0], self.data[2][:, 1], s=0.8)
         ax.set_title("Isomap")
+
         ax = fig.add_subplot(224)
-        ax.plot(self.data[3][0], self.data[3][1])
+        ax.scatter(self.data[3][:, 0], self.data[3][:, 1], s=0.8)
         ax.set_title("LLE")
+
+        canvas = FigureCanvas(fig)
+        self.setCentralWidget(canvas)
+
+    def draw_3D(self):
+        fig = plt.figure()
+        plt.subplots_adjust(wspace=0.4, hspace=0.4)
+
+        ax = fig.add_subplot(221, projection='3d')
+        ax.scatter(self.data[0][:, 0], self.data[0][:, :1], self.data[0][:, 2], s=0.8)
+        ax.set_title("PCA")
+
+        ax = fig.add_subplot(222, projection='3d')
+        ax.scatter(self.data[1][:, 0], self.data[1][:, :1], self.data[1][:, 2], s=0.8)
+        ax.set_title("MDS")
+
+        ax = fig.add_subplot(223, projection='3d')
+        ax.scatter(self.data[2][:, 0], self.data[2][:, :1], self.data[2][:, 2], s=0.8)
+        ax.set_title("Isomap")
+
+        ax = fig.add_subplot(224, projection='3d')
+        ax.scatter(self.data[3][:, 0], self.data[3][:, :1], self.data[3][:, 2], s=0.8)
+        ax.set_title("LLE")
+
         canvas = FigureCanvas(fig)
         self.setCentralWidget(canvas)
 
@@ -192,7 +229,6 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
 
     main = MainWindow()
-    visualize = VisualizeWindow()
 
     main.show()
 
