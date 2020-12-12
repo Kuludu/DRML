@@ -9,6 +9,7 @@ from sklearn.cluster import DBSCAN, KMeans
 from sklearn.decomposition import PCA
 from sklearn.manifold import MDS, Isomap, LocallyLinearEmbedding
 from sklearn.metrics import f1_score, mean_squared_error, mean_absolute_error, accuracy_score
+from sklearn.preprocessing import MinMaxScaler
 
 from UI.mainwindow import *
 from UI.visualize import *
@@ -49,6 +50,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         X = data.values[:, :-1]
         y = data.values[:, -1]
+
+        scaler = MinMaxScaler()
+        X = scaler.fit_transform(X)
 
         dbscan = DBSCAN(eps=self.eps.value(), min_samples=self.minpts.value())
         kmeans = KMeans(n_clusters=self.cluster.value())
