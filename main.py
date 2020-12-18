@@ -17,6 +17,7 @@ from UI.visualize import *
 matplotlib.use("Qt5Agg")
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 import matplotlib.pyplot as plt
+import qdarkstyle
 
 
 class MainWindow(QMainWindow, Ui_MainWindow):
@@ -233,6 +234,7 @@ class VisualizeWindow(QMainWindow, Ui_Visualize):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
+    app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
 
     main = MainWindow()
 
